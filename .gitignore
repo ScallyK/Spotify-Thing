@@ -1,0 +1,26 @@
+# Local secrets, credentials, and OAuth tokens
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+**/secrets.h
+**/secrets.*
+!**/secrets.example.h
+**/tokens.json
+**/*credentials*
+**/*password*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+
+# Local development files
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+
+# PlatformIO build output
+firmware/.pio/
