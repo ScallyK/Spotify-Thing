@@ -46,18 +46,25 @@ void WifiManager::processEvent(WiFiEvent_t event)
     // Association alone does not prove that DHCP has completed.
     case ARDUINO_EVENT_WIFI_STA_CONNECTED:
       xEventGroupSetBits(eventGroup, AssociatedBit);
+      appState.redraw = true;
       break;
 
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
       xEventGroupSetBits(eventGroup, AssociatedBit | HasIpBit);
+      appState.statusMessage = "Wi-Fi connected";
+      appState.redraw = true;
       break;
 
     case ARDUINO_EVENT_WIFI_STA_LOST_IP:
       xEventGroupClearBits(eventGroup, HasIpBit);
+      appState.statusMessage = "Wi-Fi getting IP...";
+      appState.redraw = true;
       break;
 
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
       xEventGroupClearBits(eventGroup, AssociatedBit | HasIpBit);
+      appState.statusMessage = "Wi-Fi joining...";
+      appState.redraw = true;
       break;
 
     default:

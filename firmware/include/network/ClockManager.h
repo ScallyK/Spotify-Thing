@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <time.h>
 
 #include "Models.h"
 
@@ -31,7 +32,9 @@ class ClockManager
   bool ntpSyncRequested = false;
   bool httpTimeFallbackTried = false;
   bool seededFromBuild = false;
+  bool networkTimeSynced = false;
 
   uint32_t lastNtpAttemptAt = 0;
   uint32_t firstNtpAttemptAt = 0;
+  time_t buildEpoch = 0;
 };

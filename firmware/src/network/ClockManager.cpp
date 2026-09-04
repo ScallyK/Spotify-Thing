@@ -2,6 +2,7 @@
 
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -28,6 +29,7 @@ bool ClockManager::begin()
 
   const timeval systemTime = {clockEpoch, 0};
   seededFromBuild = settimeofday(&systemTime, nullptr) == 0;
+  buildEpoch = clockEpoch;
 
   if (seededFromBuild){
     appState.statusMessage = "Clock seeded; starting Wi-Fi...";
@@ -38,7 +40,7 @@ bool ClockManager::begin()
 
 bool ClockManager::ready() const
 {
-  return time(nullptr) > 1700000000;
+  return networkTimeSynced;
 }
 
 void ClockManager::requestNtpSync()
@@ -103,7 +105,12 @@ bool ClockManager::syncFromHttpDate()
 
   const timeval systemTime = {clockEpoch, 0};
 
-  return settimeofday(&systemTime, nullptr) == 0 && ready();
+  if (settimeofday(&systemTime, nullptr) != 0){
+    return false;
+  }
+
+  networkTimeSynced = true;
+  return true;
 }
 
 void ClockManager::update(bool stationAssociated, bool ipAddressAvailable)
@@ -126,8 +133,15 @@ void ClockManager::update(bool stationAssociated, bool ipAddressAvailable)
     requestNtpSync();
   }
 
+  // The build timestamp is only a TLS-safe placeholder. Treat a clock that has
+  // moved materially from it as proof that an NTP update completed.
+  if (!networkTimeSynced && seededFromBuild &&
+      llabs(static_cast<long long>(time(nullptr)) - static_cast<long long>(buildEpoch)) > 300){
+    networkTimeSynced = true;
+  }
+
   if (ready()){
-    // NTP may update asynchronously, so stop retrying as soon as the epoch is credible.
+    // NTP may update asynchronously, so stop retrying after a network sync.
     return;
   }
 
